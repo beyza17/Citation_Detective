@@ -63,19 +63,34 @@ jobs:
           echo "team=$TEAM_NAME" >> $GITHUB_OUTPUT
           echo "timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
 
+      # - name: Update Leaderboard CSV
+      #   run: |
+      #     # FIXED: Use actual outputs from the scoring step
+      #     echo "${{ steps.scoring.outputs.team }},StandardModel,${{ steps.scoring.outputs.score }},${{ steps.scoring.outputs.timestamp }},PR Submission" >> leaderboard/leaderboard.csv
+          
+      #     # Optional: Sort by score descending
+      #     if [ -f leaderboard/leaderboard.csv ]; then
+      #       (head -n1 leaderboard/leaderboard.csv && tail -n+2 leaderboard/leaderboard.csv | sort -t, -k3 -rn) > leaderboard/leaderboard_sorted.csv
+      #       mv leaderboard/leaderboard_sorted.csv leaderboard/leaderboard.csv
+      #     fi
+
       - name: Update Leaderboard CSV
         run: |
-          # FIXED: Use actual outputs from the scoring step
+          # Check if CSV exists and has header
+          if [ ! -f leaderboard/leaderboard.csv ] || [ $(wc -l < leaderboard/leaderboard.csv) -eq 0 ]; then
+            # Write header first
+            echo "team,model,score,timestamp_utc,notes" > leaderboard/leaderboard.csv
+          fi
+          
+          # Append new score with correct column names
           echo "${{ steps.scoring.outputs.team }},StandardModel,${{ steps.scoring.outputs.score }},${{ steps.scoring.outputs.timestamp }},PR Submission" >> leaderboard/leaderboard.csv
           
-          # Optional: Sort by score descending
+          # Sort by score
           if [ -f leaderboard/leaderboard.csv ]; then
             (head -n1 leaderboard/leaderboard.csv && tail -n+2 leaderboard/leaderboard.csv | sort -t, -k3 -rn) > leaderboard/leaderboard_sorted.csv
             mv leaderboard/leaderboard_sorted.csv leaderboard/leaderboard.csv
           fi
-
-      # ADD THIS - Render markdown
-      - name: Render Leaderboard Markdown
+      - name: Render Leaderboard Markdown and HTML
         run: |
           # Install any dependencies needed for render_leaderboard.py
           if [ -f requirements.txt ]; then
@@ -83,35 +98,60 @@ jobs:
           fi
           python competition/render_leaderboard.py
 
-      # UPDATE THIS - Commit both files
       - name: Commit and Push
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
           
-          # Check if files changed
-          echo "Checking for changes..."
-          git status
-          
-          # Add both CSV and MD files
-          git add leaderboard/leaderboard.csv leaderboard/leaderboard.md
+          # Add all leaderboard files
+          git add leaderboard/leaderboard.csv leaderboard/leaderboard.md docs/leaderboard.html
           
           if git diff --staged --quiet; then
             echo "No changes to commit."
             exit 0
           fi
           
-          echo "Changes detected. Committing..."
           git commit -m "Update leaderboard with score for ${{ steps.scoring.outputs.team }}"
-          
-          # Pull latest changes before pushing
-          echo "Pulling latest changes..."
           git pull origin main --rebase
-          
-          echo "Pushing changes..."
           git push origin main
+      # ADD THIS - Render markdown
+      # - name: Render Leaderboard Markdown
+      #   run: |
+      #     # Install any dependencies needed for render_leaderboard.py
+      #     if [ -f requirements.txt ]; then
+      #       pip install -r requirements.txt
+      #     fi
+      #     python competition/render_leaderboard.py
+
+      # # UPDATE THIS - Commit both files
+      # - name: Commit and Push
+      #   run: |
+      #     git config user.name "github-actions"
+      #     git config user.email "github-actions@users.noreply.github.com"
           
-          echo "Done!"
+      #     # Check if files changed
+      #     echo "Checking for changes..."
+      #     git status
+          
+      #     # Add both CSV and MD files
+      #     git add leaderboard/leaderboard.csv leaderboard/leaderboard.md
+          
+      #     if git diff --staged --quiet; then
+      #       echo "No changes to commit."
+      #       exit 0
+      #     fi
+          
+      #     echo "Changes detected. Committing..."
+      #     git commit -m "Update leaderboard with score for ${{ steps.scoring.outputs.team }}"
+          
+      #     # Pull latest changes before pushing
+      #     echo "Pulling latest changes..."
+      #     git pull origin main --rebase
+          
+      #     echo "Pushing changes..."
+      #     git push origin main
+          
+      #     echo "Done!"
       # - name: Commit and Push
       #   run: |
       #     git config user.name "github-actions"
