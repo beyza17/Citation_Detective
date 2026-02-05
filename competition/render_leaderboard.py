@@ -88,7 +88,6 @@ def generate_full_html(rows):
   </script>
 </head>
 <body>
-  ... (keep the rest of your HTML exactly the same) ...
   <header class="wrap">
     <div class="title-row">
       <h1>Leaderboard</h1>
