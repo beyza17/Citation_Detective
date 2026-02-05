@@ -5,8 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Leaderboard</title>
   <link rel="stylesheet" href="leaderboard.css" />
+  <script>
+    // EMBEDDED DATA FROM PYTHON
+    window.LEADERBOARD_DATA = [{"team": "trial1", "model": "StandardModel", "score": "0.60265769", "timestamp_utc": "2026-02-05T20:48:47Z", "notes": "PR Submission"}];
+  </script>
 </head>
 <body>
+  ... (keep the rest of your HTML exactly the same) ...
   <header class="wrap">
     <div class="title-row">
       <h1>Leaderboard</h1>
@@ -63,7 +68,7 @@
             <td data-key="team">trial1</td>
             <td data-key="model">StandardModel</td>
             <td class="score" data-key="score">0.60265769</td>
-            <td data-key="timestamp_utc">2026-02-05 20:34</td>
+            <td data-key="timestamp_utc">2026-02-05 20:48</td>
             <td data-key="notes">PR Submission</td>
         </tr>
 </tbody>
