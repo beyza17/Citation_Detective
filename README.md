@@ -159,6 +159,7 @@ If you use this template in academic work, please cite the repository.
 MIT License.
 
 ## Interactive Leaderboard (GitHub Pages)
+https://beyza17.github.io/Citation_Detective/leaderboard.html
 
 This template includes an interactive leaderboard page inspired by modern benchmark sites.
 
