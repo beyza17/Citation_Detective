@@ -46,7 +46,8 @@ jobs:
             exit 1
           fi
           
-          TEAM_NAME=$(basename $(dirname $(dirname "$SUB_FILE")))
+          TEAM_NAME=$(echo "$SUB_FILE" | cut -d'/' -f2)
+
           echo "Processing submission for team: $TEAM_NAME"
           
           python competition/validate_submission.py "$SUB_FILE" data/public/test_nodes.csv
@@ -76,20 +77,35 @@ jobs:
 
       - name: Update Leaderboard CSV
         run: |
-          # Check if CSV exists and has header
+          # Ensure CSV exists with headers
           if [ ! -f leaderboard/leaderboard.csv ] || [ $(wc -l < leaderboard/leaderboard.csv) -eq 0 ]; then
-            # Write header first
             echo "team,model,score,timestamp_utc,notes" > leaderboard/leaderboard.csv
           fi
           
-          # Append new score with correct column names
+          # Check if headers exist
+          if ! head -n1 leaderboard/leaderboard.csv | grep -q "team"; then
+            # Add headers
+            echo "team,model,score,timestamp_utc,notes" > leaderboard/leaderboard.tmp
+            cat leaderboard/leaderboard.csv >> leaderboard/leaderboard.tmp
+            mv leaderboard/leaderboard.tmp leaderboard/leaderboard.csv
+          fi
+          # Remove any previous entry for this team (keep latest only)
+          grep -v "^${{ steps.scoring.outputs.team }}," leaderboard/leaderboard.csv > leaderboard/leaderboard.tmp
+          mv leaderboard/leaderboard.tmp leaderboard/leaderboard.csv
+
+
+          # Append new entry - NOTE: $TEAM_NAME is "trial1" from path
           echo "${{ steps.scoring.outputs.team }},StandardModel,${{ steps.scoring.outputs.score }},${{ steps.scoring.outputs.timestamp }},PR Submission" >> leaderboard/leaderboard.csv
           
-          # Sort by score
-          if [ -f leaderboard/leaderboard.csv ]; then
-            (head -n1 leaderboard/leaderboard.csv && tail -n+2 leaderboard/leaderboard.csv | sort -t, -k3 -rn) > leaderboard/leaderboard_sorted.csv
-            mv leaderboard/leaderboard_sorted.csv leaderboard/leaderboard.csv
-          fi
+          # Sort by score (3rd column)
+          (head -n1 leaderboard/leaderboard.csv && tail -n+2 leaderboard/leaderboard.csv | sort -t, -k3 -rn) > leaderboard/leaderboard_sorted.csv
+          mv leaderboard/leaderboard_sorted.csv leaderboard/leaderboard.csv
+          
+          # Debug: Show what we wrote
+          echo "=== CSV Headers ==="
+          head -n1 leaderboard/leaderboard.csv
+          echo "=== Last entry ==="
+          tail -n1 leaderboard/leaderboard.csv
       - name: Render Leaderboard Markdown and HTML
         run: |
           # Install any dependencies needed for render_leaderboard.py

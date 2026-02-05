@@ -27,6 +27,11 @@ def read_rows():
                 'timestamp_utc': r.get('timestamp_utc', '').strip() or r.get('timestamp', '').strip(),
                 'notes': r.get('notes', '').strip()
             }
+            try:
+                float(row['score'])
+            except:
+                continue
+
             if row['team']:
                 rows.append(row)
         return rows
