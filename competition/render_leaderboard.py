@@ -1,6 +1,7 @@
 import csv
 from pathlib import Path
 from datetime import datetime
+import json
 
 ROOT = Path(__file__).resolve().parents[1]
 CSV_PATH = ROOT / "leaderboard" / "leaderboard.csv"
@@ -68,9 +69,11 @@ def generate_html_table(rows):
     html.append('</tbody>')
     return '\n'.join(html)
 
+
 def generate_full_html(rows):
-    """Generate a complete HTML page"""
     table_html = generate_html_table(rows)
+    # Convert rows to a JSON string to embed in JS
+    json_data = json.dumps(rows)
     
     return f'''<!doctype html>
 <html lang="en">
@@ -79,8 +82,13 @@ def generate_full_html(rows):
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Leaderboard</title>
   <link rel="stylesheet" href="leaderboard.css" />
+  <script>
+    // EMBEDDED DATA FROM PYTHON
+    window.LEADERBOARD_DATA = {json_data};
+  </script>
 </head>
 <body>
+  ... (keep the rest of your HTML exactly the same) ...
   <header class="wrap">
     <div class="title-row">
       <h1>Leaderboard</h1>

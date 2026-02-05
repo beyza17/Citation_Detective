@@ -175,23 +175,27 @@ function setupSorting(){
 
 async function main(){
   const status = document.getElementById("status");
-  try{
-    const res = await fetch("../leaderboard/leaderboard.csv", {cache:"no-store"});
-    const txt = await res.text();
-    const rows = parseCSV(txt);
+  try {
+    // CHANGE THIS: Instead of fetch, use the window variable
+    let rows = window.LEADERBOARD_DATA; 
 
-    // normalize and compute rank order by score (descending) initially
-    const cleaned = rows
-      .filter(r => r.team) // ignore empty template line
-      .map(r => ({
-        timestamp_utc: r.timestamp_utc,
+    if (!rows || rows.length === 0) {
+      status.textContent = "No submissions yet.";
+      return;
+    }
+
+    // normalize and compute rank order
+    const cleaned = rows.map(r => ({
+        timestamp_utc: r.timestamp_utc || r.timestamp,
         team: r.team,
         model: (r.model || "").toLowerCase(),
         score: r.score,
         notes: r.notes || "",
-      }));
+    }));
 
     state.rows = cleaned;
+
+   
 
     // fill model options
     const modelSet = new Set(cleaned.map(r => r.model).filter(Boolean));
@@ -209,15 +213,19 @@ async function main(){
     document.getElementById("search").addEventListener("input", applyFilters);
     document.getElementById("modelFilter").addEventListener("change", applyFilters);
     document.getElementById("dateFilter").addEventListener("change", applyFilters);
+    
 
-    // default: sort by score desc
+     // ... rest of your existing logic (modelSet, event listeners, etc.) ...
+    
+    // Make sure you call applyFilters() at the end
     state.sortKey = "score";
     state.sortDir = "desc";
     applyFilters();
-  }catch(e){
-    status.textContent = "Failed to load leaderboard.";
+
+  } catch(e) {
+    status.textContent = "Error processing data.";
     console.error(e);
   }
 }
-
+   
 main();
