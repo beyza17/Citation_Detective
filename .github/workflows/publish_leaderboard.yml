@@ -8,9 +8,14 @@ on:
 
 jobs:
   render:
+    # Skip if commit is from github-actions to prevent loops
+    if: github.event.head_commit.author.username != 'github-actions[bot]' && github.actor != 'github-actions'
     runs-on: ubuntu-latest
+    
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -35,4 +40,5 @@ jobs:
           git config user.email "github-actions@users.noreply.github.com"
           git add leaderboard/leaderboard.md
           git commit -m "Update leaderboard.md"
-          git push
+          git pull origin main --rebase
+          git push origin main

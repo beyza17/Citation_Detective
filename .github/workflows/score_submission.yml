@@ -14,13 +14,13 @@ jobs:
       pull-requests: write
 
     steps:
-   
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: true
-          
+          ref: main
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -29,57 +29,50 @@ jobs:
       - name: Install dependencies
         run: |
           pip install pandas scikit-learn
+          # Remove this line if render_leaderboard.py deps aren't needed here
+          # pip install -r requirements.txt  # ONLY include if needed for scoring
 
-     
       - name: Validate and Score
         id: scoring
         env:
-          # This uses the secret you already pasted on GitHub
           TEST_LABELS_DATA: ${{ secrets.TEST_LABELS_BASE64 }}
         run: |
-          # 1. Recreate the private directory and labels file
           mkdir -p data/private
           echo "$TEST_LABELS_DATA" | base64 --decode > data/private/test_labels.csv
-
-          # 2. Identify the submission file path
+          
           SUB_FILE=$(find inbox -name "predictions.csv" | head -n 1)
-
           if [ -z "$SUB_FILE" ]; then
-            echo "::error::Could not find predictions.csv in inbox/. Ensure path is inbox/<team>/<run>/predictions.csv"
+            echo "::error::Could not find predictions.csv in inbox/"
             exit 1
           fi
-
-          # 3. Extract Team Name 
-          # Path: inbox/TEAM_NAME/run_id/predictions.csv
-          # We go up two levels from predictions.csv to get TEAM_NAME
-          TEAM_NAME=$(basename $(dirname $(dirname "$SUB_FILE")))
           
+          TEAM_NAME=$(basename $(dirname $(dirname "$SUB_FILE")))
           echo "Processing submission for team: $TEAM_NAME"
-
-          # 4. Run Validation
+          
           python competition/validate_submission.py "$SUB_FILE" data/public/test_nodes.csv
           
-          # 5. Run Evaluation
-          # Ensure your evaluate.py prints "SCORE=X.XXXX"
           SCORE_OUT=$(python competition/evaluate.py "$SUB_FILE" data/private/test_labels.csv)
           SCORE=$(echo $SCORE_OUT | grep -oP 'SCORE=\K[0-9.]+')
-
+          
           if [ -z "$SCORE" ]; then
-            echo "::error::Score extraction failed. Ensure evaluate.py prints 'SCORE=value'"
+            echo "::error::Score extraction failed."
             exit 1
           fi
           
-          # 6. Set Outputs
           echo "score=$SCORE" >> $GITHUB_OUTPUT
           echo "team=$TEAM_NAME" >> $GITHUB_OUTPUT
           echo "timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
-    
-      
+
       - name: Update Leaderboard CSV
         run: |
-          # Append new score: team,model,score,timestamp_utc,notes
-          # Assuming model name is 'Baseline' for now or parsed from a metadata file
+          # FIXED: Use actual outputs from the scoring step
           echo "${{ steps.scoring.outputs.team }},StandardModel,${{ steps.scoring.outputs.score }},${{ steps.scoring.outputs.timestamp }},PR Submission" >> leaderboard/leaderboard.csv
+          
+          # Optional: Sort by score descending
+          if [ -f leaderboard/leaderboard.csv ]; then
+            (head -n1 leaderboard/leaderboard.csv && tail -n+2 leaderboard/leaderboard.csv | sort -t, -k3 -rn) > leaderboard/leaderboard_sorted.csv
+            mv leaderboard/leaderboard_sorted.csv leaderboard/leaderboard.csv
+          fi
 
       - name: Commit and Push
         run: |
@@ -87,11 +80,17 @@ jobs:
           git config user.email "github-actions@users.noreply.github.com"
           git add leaderboard/leaderboard.csv
           
-          # Only commit if there are changes to avoid errors
+          # Only commit if there are changes
           if git diff --staged --quiet; then
             echo "No changes to leaderboard."
           else
+            # Pull latest changes first to avoid conflicts
+            git pull origin main --rebase
             git commit -m "Add score for ${{ steps.scoring.outputs.team }}"
-            # Push specifically to the remote main branch
-            git push origin HEAD:main
+            git push origin main
           fi
+      
+      # REMOVE THIS STEP - It belongs in publish_leaderboard.yml
+      # - name: Render Leaderboard Markdown
+      #   run: |
+      #     python competition/render_leaderboard.py
