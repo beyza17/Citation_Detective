@@ -14,11 +14,12 @@ jobs:
       pull-requests: write
 
     steps:
+   
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
+          persist-credentials: true
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -84,5 +85,12 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
           git add leaderboard/leaderboard.csv
-          git commit -m "Add score for ${{ steps.scoring.outputs.team }}"
-          git push origin main
+          
+          # Only commit if there are changes to avoid errors
+          if git diff --staged --quiet; then
+            echo "No changes to leaderboard."
+          else
+            git commit -m "Add score for ${{ steps.scoring.outputs.team }}"
+            # Push specifically to the remote main branch
+            git push origin HEAD:main
+          fi
