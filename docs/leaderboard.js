@@ -28,11 +28,12 @@ function parseCSV(text){
 }
 
 function daysAgo(dateStr){
-  const d = new Date(dateStr);
+  const d = new Date(dateStr.replace("Z", ""));
   if(isNaN(d.getTime())) return Infinity;
   const now = new Date();
   return (now - d) / (1000*60*60*24);
 }
+
 
 const state = {
   rows: [],
@@ -188,7 +189,7 @@ async function main(){
     const cleaned = rows.map(r => ({
         timestamp_utc: r.timestamp_utc || r.timestamp,
         team: r.team,
-        model: (r.model || "").toLowerCase(),
+        model: r.model || "",
         score: r.score,
         notes: r.notes || "",
     }));
