@@ -46,7 +46,7 @@ jobs:
             exit 1
           fi
           
-          TEAM_NAME=$(echo "$SUB_FILE" | cut -d'/' -f2)
+          TEAM_NAME=$(echo "$SUB_FILE" | cut -d'/' -f3)
 
           echo "Processing submission for team: $TEAM_NAME"
           
