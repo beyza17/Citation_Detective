@@ -74,28 +74,61 @@ jobs:
             mv leaderboard/leaderboard_sorted.csv leaderboard/leaderboard.csv
           fi
 
-     
+      # ADD THIS - Render markdown
+      - name: Render Leaderboard Markdown
+        run: |
+          # Install any dependencies needed for render_leaderboard.py
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+          python competition/render_leaderboard.py
+
+      # UPDATE THIS - Commit both files
       - name: Commit and Push
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
-          git add leaderboard/leaderboard.csv
           
-          # Only proceed if there are changes
+          # Check if files changed
+          echo "Checking for changes..."
+          git status
+          
+          # Add both CSV and MD files
+          git add leaderboard/leaderboard.csv leaderboard/leaderboard.md
+          
           if git diff --staged --quiet; then
-            echo "No changes to leaderboard."
+            echo "No changes to commit."
             exit 0
           fi
           
-          # First commit the changes
-          git commit -m "Add score for ${{ steps.scoring.outputs.team }}"
+          echo "Changes detected. Committing..."
+          git commit -m "Update leaderboard with score for ${{ steps.scoring.outputs.team }}"
           
-          # Then pull with rebase (now we have no uncommitted changes)
+          # Pull latest changes before pushing
+          echo "Pulling latest changes..."
           git pull origin main --rebase
           
-          # Finally push
+          echo "Pushing changes..."
           git push origin main
-      # REMOVE THIS STEP - It belongs in publish_leaderboard.yml
-      # - name: Render Leaderboard Markdown
+          
+          echo "Done!"
+      # - name: Commit and Push
       #   run: |
-      #     python competition/render_leaderboard.py
+      #     git config user.name "github-actions"
+      #     git config user.email "github-actions@users.noreply.github.com"
+      #     git add leaderboard/leaderboard.csv
+          
+      #     # Only proceed if there are changes
+      #     if git diff --staged --quiet; then
+      #       echo "No changes to leaderboard."
+      #       exit 0
+      #     fi
+          
+      #     # First commit the changes
+      #     git commit -m "Add score for ${{ steps.scoring.outputs.team }}"
+          
+      #     # Then pull with rebase (now we have no uncommitted changes)
+      #     git pull origin main --rebase
+          
+      #     # Finally push
+      #     git push origin main
