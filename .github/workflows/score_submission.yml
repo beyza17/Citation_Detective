@@ -1,0 +1,63 @@
+name: Score Submission
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - "submissions/**/submission.csv"
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install pandas scikit-learn
+
+      - name: Validate and Score
+        id: scoring
+        run: |
+          # 1. Identify the submission file path
+          SUB_FILE=$(find submissions -name "submission.csv" | head -n 1)
+          TEAM_NAME=$(basename $(dirname $SUB_FILE))
+          
+          # 2. Run Validation
+          python competition/validate_submission.py "$SUB_FILE" data/public/test_nodes.csv
+          
+          # 3. Run Evaluation (using your evaluate script logic)
+          # We redirect the score to a variable. 
+          # Assuming evaluate.py prints "SCORE=0.12345678"
+          SCORE_OUT=$(python competition/evaluate.py "$SUB_FILE" data/private/test_labels.csv)
+          SCORE=$(echo $SCORE_OUT | grep -oP 'SCORE=\K[0-9.]+')
+          
+          echo "score=$SCORE" >> $GITHUB_OUTPUT
+          echo "team=$TEAM_NAME" >> $GITHUB_OUTPUT
+          echo "timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+
+      - name: Update Leaderboard CSV
+        run: |
+          # Append new score: team,model,score,timestamp_utc,notes
+          # Assuming model name is 'Baseline' for now or parsed from a metadata file
+          echo "${{ steps.scoring.outputs.team }},StandardModel,${{ steps.scoring.outputs.score }},${{ steps.scoring.outputs.timestamp }},PR Submission" >> leaderboard/leaderboard.csv
+
+      - name: Commit and Push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add leaderboard/leaderboard.csv
+          git commit -m "Add score for ${{ steps.scoring.outputs.team }}"
+          git push origin main

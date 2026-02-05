@@ -1,0 +1,2 @@
+task: multi_node_classification
+metric: f1_score
