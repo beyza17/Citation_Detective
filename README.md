@@ -158,10 +158,8 @@ If you use this template in academic work, please cite the repository.
 
 MIT License.
 
-## Interactive Leaderboard (GitHub Pages)
-https://beyza17.github.io/Citation_Detective/leaderboard.html
 
-This template includes an interactive leaderboard page inspired by modern benchmark sites.
+## 📊 Leaderboard
 
-**Enable GitHub Pages** (Settings → Pages) and set the source to the `main` branch `/docs` folder.
-Then open `https://<your-org>.github.io/<repo>/leaderboard.html`.
+View the interactive leaderboard here: [Leaderboard](https://beyza17.github.io/Citation_Detective/leaderboard.html)
+
