@@ -1,2 +1,2 @@
-timestamp_utc,team,model,score,notes
-trial1,StandardModel,0.60265769,2026-02-05T20:17:11Z,PR Submission
+team,model,score,timestamp_utc,notes
+trial1,StandardModel,0.60265769,2026-02-05T20:34:40Z,PR Submission
