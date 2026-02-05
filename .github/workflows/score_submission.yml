@@ -31,19 +31,33 @@ jobs:
       - name: Validate and Score
         id: scoring
         run: |
-          # 1. Identify the submission file path
-          SUB_FILE=$(find submissions -name "submission.csv" | head -n 1)
-          TEAM_NAME=$(basename $(dirname $SUB_FILE))
+          # 1. Search for the file in the 'inbox' directory
+          # We use predictions.csv as per your folder structure
+          SUB_FILE=$(find inbox -name "predictions.csv" | head -n 1)
+
+          # Check if file exists to prevent the 'missing operand' error
+          if [ -z "$SUB_FILE" ]; then
+            echo "Error: No predictions.csv found in inbox/"
+            exit 1
+          fi
+
+          # 2. Extract Team Name 
+          # Structure: inbox/<team>/<run_id>/predictions.csv
+          # dirname $SUB_FILE gives: inbox/<team>/<run_id>
+          # dirname $(dirname ...) gives: inbox/<team>
+          # basename $(...) gives: <team>
+          TEAM_NAME=$(basename $(dirname $(dirname "$SUB_FILE")))
           
-          # 2. Run Validation
+          echo "Processing submission for team: $TEAM_NAME"
+
+          # 3. Run Validation
           python competition/validate_submission.py "$SUB_FILE" data/public/test_nodes.csv
           
-          # 3. Run Evaluation (using your evaluate script logic)
-          # We redirect the score to a variable. 
-          # Assuming evaluate.py prints "SCORE=0.12345678"
+          # 4. Run Evaluation
           SCORE_OUT=$(python competition/evaluate.py "$SUB_FILE" data/private/test_labels.csv)
           SCORE=$(echo $SCORE_OUT | grep -oP 'SCORE=\K[0-9.]+')
           
+          # 5. Set Outputs
           echo "score=$SCORE" >> $GITHUB_OUTPUT
           echo "team=$TEAM_NAME" >> $GITHUB_OUTPUT
           echo "timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
