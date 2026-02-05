@@ -92,7 +92,7 @@ for the test nodes.
     ├── score_submission.yml
     └── publish_leaderboard.yml
 
-
+```
 ## 3. Submission Format
 
 Participants submit a **single CSV file**:
@@ -199,7 +199,7 @@ Your goal: Beat the baseline! 🎯
 
 😈Your worst class performance defines your score.
 
-## 🤓 Have a nice works!
+## 🤓 Have a nice work!
 ---
 
 ## 10. License
