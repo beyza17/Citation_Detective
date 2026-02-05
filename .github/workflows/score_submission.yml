@@ -83,12 +83,17 @@ jobs:
           fi
           
           # Check if headers exist
-          if ! head -n1 leaderboard/leaderboard.csv | grep -q "team"; then
-            # Add headers
-            echo "team,model,score,timestamp_utc,notes" > leaderboard/leaderboard.tmp
-            cat leaderboard/leaderboard.csv >> leaderboard/leaderboard.tmp
+          # Ensure correct header order
+          EXPECTED_HEADER="team,model,score,timestamp_utc,notes"
+          CURRENT_HEADER=$(head -n1 leaderboard/leaderboard.csv)
+
+          if [ "$CURRENT_HEADER" != "$EXPECTED_HEADER" ]; then
+            echo "$EXPECTED_HEADER" > leaderboard/leaderboard.tmp
+            tail -n+2 leaderboard/leaderboard.csv >> leaderboard/leaderboard.tmp
             mv leaderboard/leaderboard.tmp leaderboard/leaderboard.csv
           fi
+
+         
           # Remove any previous entry for this team (keep latest only)
           grep -v "^${{ steps.scoring.outputs.team }}," leaderboard/leaderboard.csv > leaderboard/leaderboard.tmp
           mv leaderboard/leaderboard.tmp leaderboard/leaderboard.csv
