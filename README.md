@@ -21,7 +21,7 @@ This makes the competition:
 **Task:** Node classification on a graph  
 **Input:** Public graph structure and node features  
 **Output:** Predictions for unseen test nodes  
-**Metric:** ROC-AUC (binary classification)
+**Metric:** f1 score (multi classification)
 
 Participants train any GNN or non-GNN model *offline* and submit predictions
 for the test nodes.
