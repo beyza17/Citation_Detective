@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [ main ]
     paths:
-      - "inbox/**/predictions.csv"
+      - "submissions/inbox/**/predictions.csv"
 
 jobs:
   evaluate:
@@ -40,9 +40,9 @@ jobs:
           mkdir -p data/private
           echo "$TEST_LABELS_DATA" | base64 --decode > data/private/test_labels.csv
           
-          SUB_FILE=$(find inbox -name "predictions.csv" | head -n 1)
+          SUB_FILE=$(find submissions/inbox -name "predictions.csv" | head -n 1)
           if [ -z "$SUB_FILE" ]; then
-            echo "::error::Could not find predictions.csv in inbox/"
+            echo "::error::Could not find predictions.csv in submissions/inbox/"
             exit 1
           fi
           

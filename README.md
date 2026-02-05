@@ -34,11 +34,8 @@ for the test nodes.
 .
 ├── data/
 │   ├── public/
-│   │   ├── train_edges.csv
-│   │   ├── train_labels.csv
-│   │   ├── val_edges.csv
-│   │   ├── val_labels.csv
-│   │   ├── test_edges.csv
+│   │   ├── train.csv # has labels in the last column
+│   │   ├── test.csv
 │   │   ├── test_nodes.csv
 │   │   └── sample_submission.csv
 │   └── private/
@@ -50,16 +47,14 @@ for the test nodes.
 │   └── metrics.py
 ├── submissions/
 │   ├── README.md
-│   └── inbox/
+│   └── inbox/<team>/<run_id>/predictions.csv
 ├── leaderboard/
 │   ├── leaderboard.csv
 │   └── leaderboard.md
 └── .github/workflows/
     ├── score_submission.yml
     └── publish_leaderboard.yml
-```
 
----
 
 ## 3. Submission Format
 
@@ -68,8 +63,8 @@ Participants submit a **single CSV file**:
 **predictions.csv**
 ```
 id,y_pred
-n0001,0.92
-n0002,0.13
+n0001,3
+n0002,2
 ...
 ```
 
