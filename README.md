@@ -1,18 +1,55 @@
+# Citation Detective - Node Classification
 
-# GNN Coding Competition Template
+## 🎯 Challenge Overview
+Investigating the Cora Network: Can you solve the mystery of the missing paper subjects?
+Your score is determined by the **minimum per-class F1 score** - your worst-performing class defines your final rank!
 
-This repository provides a **secure, reproducible template** for running a
-Graph Neural Network (GNN) competition that supports **humans and LLMs**
-competing on equal footing.
+![Cora Dataset](image.png)
+## 📊 Dataset Information
+The dataset was processed using the `Planetoid` library with the following graph properties:
 
-The design intentionally **does not execute participant code**. Instead,
-participants submit **predictions only**, which are automatically evaluated
-and ranked on a public leaderboard using GitHub Actions.
+* **Undirected:** True
+* **Self-loops:** False
+* **Isolated Nodes:** False
+* **Total Training Nodes:** 640 
+* **Training Label Rate:** 0.236
+* **Total Testing Nodes:** 1,000
+* **Total Node Features:** 1,433
+* **Testing Label Rate:** 0.369
 
-This makes the competition:
-- Safe (no untrusted code execution)
-- Fully reproducible
-- Suitable for human-vs-LLM evaluation studies
+## 🏷️ Category Mapping
+The dataset classifies papers into 7 distinct scientific fields:
+
+| Index | Category Name       |
+| :--- | :---               |
+| 0    | Theory             |
+| 1    | Reinforcement Learning |
+| 2    | Genetic Algorithms |
+| 3    | Neural Networks    |
+| 4    | Probabilistic Methods |
+| 5    | Case Based         |
+| 6    | Rule Learning      |
+
+----
+
+## Class Distribution 
+![alt text](image-1.png)
+![alt text](image-2.png)
+
+## Dataset Distribution
+
+| Index | Category Name       | Training Set |            | Testing Set |            |
+| :--- | :---               | :---: | :---: | :---: | :---: |
+|       |                    | **Count** | **%** | **Count** | **%** |
+| 0    | Theory             | 81    | 12.66% | 130   | 13.0% |
+| 1    | Reinforcement Learning | 56  | 8.75%  | 91    | 9.1%  |
+| 2    | Genetic Algorithms | 98    | 15.31% | 144   | 14.4% |
+| 3    | Neural Networks    | 178   | 27.81% | 319   | 31.9% |
+| 4    | Probabilistic Methods | 101 | 15.78% | 149   | 14.9% |
+| 5    | Case Based         | 77    | 12.03% | 103   | 10.3% |
+| 6    | Rule Learning      | 49    | 7.66%  | 64    | 6.4%  |
+| **Total** | | **640** | **100%** | **1000** | **100%** |
+
 
 ---
 
@@ -108,13 +145,17 @@ The PR will be **automatically scored** and the result posted as a comment.
 
 ---
 
-## 5. Leaderboard
+## 5. 📊Leaderboard
+View the interactive leaderboard here: [Leaderboard](https://beyza17.github.io/Citation_Detective/leaderboard.html)
 
 After a PR is merged, the submission is added to:
 - `leaderboard/leaderboard.csv`
 - `leaderboard/leaderboard.md`
 
 Rankings are sorted by **descending score**.
+
+
+
 
 ---
 
@@ -143,18 +184,26 @@ To use this competition for research:
 
 ---
 
-## 8. Citation
 
-If you use this template in academic work, please cite the repository.
 
+## 8. Baseline Performance (validation set)
+
+
+- Min per-class F1: ~0.6
+
+Your goal: Beat the baseline! 🎯
+
+
+## 9. References
+- Data: [Planetoid-Cora](https://pytorch-geometric.readthedocs.io/en/2.5.0/generated/torch_geometric.datasets.Planetoid.html)
+
+😈Your worst class performance defines your score.
+
+## 🤓 Have a nice works!
 ---
 
-## 9. License
+## 10. License
 
 MIT License.
 
-
-## 📊 Leaderboard
-
-View the interactive leaderboard here: [Leaderboard](https://beyza17.github.io/Citation_Detective/leaderboard.html)
 
