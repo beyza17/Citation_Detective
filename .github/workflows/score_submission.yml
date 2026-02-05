@@ -29,42 +29,53 @@ jobs:
           pip install pandas scikit-learn
 
       - name: Validate and Score
-   
+     
         id: scoring
         env:
-          # This pulls the secret you just created into the runner environment
           TEST_LABELS_DATA: ${{ secrets.TEST_LABELS_BASE64 }}
         run: |
-          # 1. Create the private directory
+          # 1. Recreate the private directory and labels file
           mkdir -p data/private
-
-          # 2. Decode the secret back into a CSV file
           echo "$TEST_LABELS_DATA" | base64 --decode > data/private/test_labels.csv
 
-          # 3. Search for the submission file (updated path logic)
+          # 2. Identify the submission file path
+          # We look for predictions.csv inside the inbox folder
           SUB_FILE=$(find inbox -name "predictions.csv" | head -n 1)
-          
+
+          # --- Safety Check ---
           if [ -z "$SUB_FILE" ]; then
-            echo "Error: predictions.csv not found in inbox/"
+            echo "::error::Could not find predictions.csv in the inbox directory. Please check your folder structure."
             exit 1
           fi
+          echo "Found submission at: $SUB_FILE"
+          # --------------------
 
-          # 4. Extract Team Name (inbox/team/run_id/predictions.csv)
+          # 3. Extract Team Name (inbox/team_name/run_id/predictions.csv)
           TEAM_NAME=$(basename $(dirname $(dirname "$SUB_FILE")))
-          
-          # 5. Run Validation
+          echo "Processing team: $TEAM_NAME"
+
+          # 4. Run Validation (Public Check)
           python competition/validate_submission.py "$SUB_FILE" data/public/test_nodes.csv
           
-          # 6. Run Evaluation
+          # 5. Run Evaluation (Private Check)
+          # Captures output like "SCORE=0.85"
           SCORE_OUT=$(python competition/evaluate.py "$SUB_FILE" data/private/test_labels.csv)
-          SCORE=$(echo $SCORE_OUT | grep -oP 'SCORE=\K[0-9.]+')
           
-          # 7. Set Outputs for the next steps
+          # Use regex to extract only the number from the string
+          SCORE=$(echo $SCORE_OUT | grep -oP 'SCORE=\K[0-9.]+')
+
+          # --- Score Check ---
+          if [ -z "$SCORE" ]; then
+            echo "::error::Evaluation failed to produce a score. Check your evaluate.py output."
+            exit 1
+          fi
+          # --------------------
+          
+          # 6. Set Outputs for the next steps
           echo "score=$SCORE" >> $GITHUB_OUTPUT
           echo "team=$TEAM_NAME" >> $GITHUB_OUTPUT
           echo "timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
-        
-
+      
       - name: Update Leaderboard CSV
         run: |
           # Append new score: team,model,score,timestamp_utc,notes
